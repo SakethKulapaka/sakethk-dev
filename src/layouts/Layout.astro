@@ -1,0 +1,60 @@
+---
+interface Props {
+	title: string;
+	description?: string;
+}
+
+const { title, description = 'Saketh Kulapaka — photography' } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="generator" content={Astro.generator} />
+		<meta name="description" content={description} />
+		<title>{title}</title>
+	</head>
+	<body>
+		<slot />
+	</body>
+</html>
+
+<style is:global>
+	:root {
+		color-scheme: dark;
+		--bg: #0b0b0c;
+		--fg: #ededec;
+		--muted: #8a8a8d;
+		--accent: #e2c48f;
+	}
+
+	* {
+		box-sizing: border-box;
+	}
+
+	html,
+	body {
+		margin: 0;
+		padding: 0;
+	}
+
+	body {
+		background: var(--bg);
+		color: var(--fg);
+		font-family:
+			'Helvetica Neue',
+			Helvetica,
+			Arial,
+			ui-sans-serif,
+			system-ui,
+			sans-serif;
+		min-height: 100vh;
+	}
+
+	a {
+		color: inherit;
+	}
+</style>

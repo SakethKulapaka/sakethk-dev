@@ -1,0 +1,54 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Saketh Kulapaka">
+	<main class="home">
+		<h1>Saketh Kulapaka</h1>
+		<p class="tagline">Photography</p>
+
+		<nav class="links">
+			<a href="/zines/blues/">Zines &rarr;</a>
+		</nav>
+	</main>
+</Layout>
+
+<style>
+	.home {
+		min-height: 100vh;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+		gap: 0.5rem;
+		padding: 2rem;
+	}
+
+	h1 {
+		font-weight: 500;
+		font-size: clamp(1.75rem, 4vw, 2.5rem);
+		letter-spacing: -0.01em;
+		margin: 0;
+	}
+
+	.tagline {
+		margin: 0 0 2rem;
+		color: var(--muted);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		font-size: 0.8rem;
+	}
+
+	.links a {
+		text-decoration: none;
+		border-bottom: 1px solid var(--muted);
+		padding-bottom: 2px;
+		font-size: 0.95rem;
+		transition: border-color 0.2s ease;
+	}
+
+	.links a:hover {
+		border-color: var(--accent);
+	}
+</style>

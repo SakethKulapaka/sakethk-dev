@@ -1,0 +1,122 @@
+---
+interface Props {
+	pages: string[];
+	title: string;
+	/** page aspect ratio, width / height */
+	aspectRatio?: number;
+}
+
+const { pages, title, aspectRatio = 1506 / 2107.5 } = Astro.props;
+const width = 600;
+const height = Math.round(width / aspectRatio);
+---
+
+<div
+	class="flipbook-wrap"
+	data-pages={JSON.stringify(pages)}
+	data-width={width}
+	data-height={height}
+>
+	<div id="flipbook" aria-label={`${title} — flip through pages`}></div>
+
+	<div class="controls">
+		<button id="prev" type="button" aria-label="Previous page">‹</button>
+		<span id="page-indicator" aria-live="polite"></span>
+		<button id="next" type="button" aria-label="Next page">›</button>
+	</div>
+</div>
+
+<script>
+	import { PageFlip } from 'page-flip';
+	import 'page-flip/src/Style/stPageFlip.css';
+
+	const wrap = document.querySelector<HTMLElement>('.flipbook-wrap');
+	const el = document.getElementById('flipbook');
+	if (wrap && el) {
+		const pages = JSON.parse(wrap.dataset.pages ?? '[]') as string[];
+		const width = Number(wrap.dataset.width);
+		const height = Number(wrap.dataset.height);
+
+		const pageFlip = new PageFlip(el, {
+			width,
+			height,
+			size: 'stretch',
+			minWidth: 280,
+			maxWidth: 1400,
+			minHeight: 380,
+			maxHeight: 1960,
+			maxShadowOpacity: 0.5,
+			showCover: true,
+			mobileScrollSupport: false,
+			usePortrait: true,
+		});
+
+		pageFlip.loadFromImages(pages);
+
+		const indicator = document.getElementById('page-indicator');
+		const updateIndicator = () => {
+			if (indicator) {
+				indicator.textContent = `${pageFlip.getCurrentPageIndex() + 1} / ${pageFlip.getPageCount()}`;
+			}
+		};
+		updateIndicator();
+		pageFlip.on('flip', updateIndicator);
+
+		document.getElementById('prev')?.addEventListener('click', () => pageFlip.flipPrev());
+		document.getElementById('next')?.addEventListener('click', () => pageFlip.flipNext());
+
+		window.addEventListener('keydown', (e) => {
+			if (e.key === 'ArrowLeft') pageFlip.flipPrev();
+			if (e.key === 'ArrowRight') pageFlip.flipNext();
+		});
+	}
+</script>
+
+<style>
+	.flipbook-wrap {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1.5rem;
+		width: 100%;
+	}
+
+	#flipbook {
+		width: min(90vw, 1100px);
+		max-height: 82vh;
+	}
+
+	.controls {
+		display: flex;
+		align-items: center;
+		gap: 1.25rem;
+		color: var(--muted);
+		font-size: 0.85rem;
+		letter-spacing: 0.04em;
+	}
+
+	.controls button {
+		background: none;
+		border: 1px solid var(--muted);
+		color: var(--fg);
+		width: 2.25rem;
+		height: 2.25rem;
+		border-radius: 50%;
+		font-size: 1.1rem;
+		line-height: 1;
+		cursor: pointer;
+		transition:
+			border-color 0.2s ease,
+			color 0.2s ease;
+	}
+
+	.controls button:hover {
+		border-color: var(--accent);
+		color: var(--accent);
+	}
+
+	#page-indicator {
+		min-width: 4.5rem;
+		text-align: center;
+	}
+</style>
