@@ -4,9 +4,11 @@ interface Props {
 	title: string;
 	/** page aspect ratio, width / height */
 	aspectRatio?: number;
+	/** transition:name shared with the cover thumbnail on the zines list, for a zoom transition into the cover page */
+	coverTransitionName?: string;
 }
 
-const { pages, title, aspectRatio = 1506 / 2107.5 } = Astro.props;
+const { pages, title, aspectRatio = 1506 / 2107.5, coverTransitionName } = Astro.props;
 const width = 600;
 const height = Math.round(width / aspectRatio);
 const minWidth = 130;
@@ -30,6 +32,7 @@ const minHeight = Math.round(minWidth / aspectRatio);
 						width={width}
 						height={height}
 						loading={i < 2 ? 'eager' : 'lazy'}
+						transition:name={i === 0 ? coverTransitionName : undefined}
 					/>
 				</div>
 			))

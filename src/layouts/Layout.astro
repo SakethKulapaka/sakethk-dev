@@ -1,4 +1,6 @@
 ---
+import { ClientRouter } from 'astro:transitions';
+
 interface Props {
 	title: string;
 	description?: string;
@@ -16,6 +18,7 @@ const { title, description = 'Saketh Kulapaka — photography' } = Astro.props;
 		<meta name="generator" content={Astro.generator} />
 		<meta name="description" content={description} />
 		<title>{title}</title>
+		<ClientRouter />
 	</head>
 	<body>
 		<slot />

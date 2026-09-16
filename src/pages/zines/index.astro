@@ -1,0 +1,127 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+const zines = [
+	{
+		slug: 'blues',
+		title: 'Blues',
+		description: 'Fairbanks, Alaska — winter 2024',
+		cover: '/zines/blues/01.jpg',
+		tilt: -4,
+	},
+];
+---
+
+<Layout title="Zines — Saketh Kulapaka" description="Photo zines by Saketh Kulapaka.">
+	<main class="zines-page">
+		<a class="back" href="/">&larr; Saketh Kulapaka</a>
+		<h1>Zines</h1>
+
+		<ul class="grid">
+			{
+				zines.map((zine) => (
+					<li class="card" style={`--tilt: ${zine.tilt}deg`}>
+						<a href={`/zines/${zine.slug}/`}>
+							<img
+								src={zine.cover}
+								alt={`${zine.title} cover`}
+								width={300}
+								height={420}
+								loading="lazy"
+								transition:name={`zine-cover-${zine.slug}`}
+							/>
+							<span class="title">{zine.title}</span>
+							<span class="description">{zine.description}</span>
+						</a>
+					</li>
+				))
+			}
+		</ul>
+	</main>
+</Layout>
+
+<style>
+	.zines-page {
+		min-height: 100vh;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 2.5rem;
+		padding: 4rem 1.5rem;
+	}
+
+	.back {
+		position: absolute;
+		top: 1.5rem;
+		left: 1.5rem;
+		font-size: 0.85rem;
+		text-decoration: none;
+		color: var(--muted);
+	}
+
+	.back:hover {
+		color: var(--fg);
+	}
+
+	h1 {
+		font-weight: 500;
+		font-size: clamp(1.5rem, 3.5vw, 2rem);
+		letter-spacing: -0.01em;
+		margin: 0;
+	}
+
+	.grid {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 3.5rem;
+	}
+
+	.card a {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		text-decoration: none;
+		color: inherit;
+	}
+
+	.card img {
+		width: 11rem;
+		height: auto;
+		aspect-ratio: 1506 / 2108;
+		object-fit: cover;
+		border-radius: 2px;
+		box-shadow:
+			0 1px 2px rgba(0, 0, 0, 0.4),
+			0 18px 40px rgba(0, 0, 0, 0.5);
+		transform: rotate(var(--tilt));
+		transition:
+			transform 0.25s ease,
+			box-shadow 0.25s ease;
+	}
+
+	.card a:hover img {
+		transform: rotate(0deg) translateY(-0.35rem) scale(1.03);
+		box-shadow:
+			0 2px 4px rgba(0, 0, 0, 0.45),
+			0 24px 48px rgba(0, 0, 0, 0.55);
+	}
+
+	.title {
+		margin-top: 1.25rem;
+		font-size: 0.95rem;
+		letter-spacing: 0.02em;
+	}
+
+	.description {
+		margin-top: 0.25rem;
+		color: var(--muted);
+		font-size: 0.75rem;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+	}
+</style>
