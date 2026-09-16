@@ -50,9 +50,14 @@ const minHeight = Math.round(minWidth / aspectRatio);
 	import { PageFlip } from 'page-flip';
 	import 'page-flip/src/Style/stPageFlip.css';
 
-	const wrap = document.querySelector<HTMLElement>('.flipbook-wrap');
-	const el = document.getElementById('flipbook');
-	if (wrap && el) {
+	// View transitions swap the DOM without a full reload, and this module
+	// only evaluates once (browsers dedupe repeat imports of the same URL),
+	// so re-running the setup has to hang off a lifecycle event rather than
+	// the module body — otherwise a zine opened a second time never inits.
+	document.addEventListener('astro:page-load', () => {
+		const wrap = document.querySelector<HTMLElement>('.flipbook-wrap');
+		const el = document.getElementById('flipbook');
+		if (!wrap || !el) return;
 		const width = Number(wrap.dataset.width);
 		const height = Number(wrap.dataset.height);
 		const minWidth = Number(wrap.dataset.minWidth);
@@ -89,14 +94,29 @@ const minHeight = Math.round(minWidth / aspectRatio);
 		updateIndicator();
 		pageFlip.on('flip', updateIndicator);
 
-		document.getElementById('prev')?.addEventListener('click', () => pageFlip.flipPrev());
-		document.getElementById('next')?.addEventListener('click', () => pageFlip.flipNext());
+		// View transitions keep `window` alive across page swaps, so scope
+		// this page's listeners to an AbortController and drop them before
+		// the next navigation instead of leaking one set per visit.
+		const controller = new AbortController();
+		const { signal } = controller;
+		document.addEventListener('astro:before-swap', () => controller.abort(), { once: true });
 
-		window.addEventListener('keydown', (e) => {
-			if (e.key === 'ArrowLeft') pageFlip.flipPrev();
-			if (e.key === 'ArrowRight') pageFlip.flipNext();
-		});
-	}
+		document
+			.getElementById('prev')
+			?.addEventListener('click', () => pageFlip.flipPrev(), { signal });
+		document
+			.getElementById('next')
+			?.addEventListener('click', () => pageFlip.flipNext(), { signal });
+
+		window.addEventListener(
+			'keydown',
+			(e) => {
+				if (e.key === 'ArrowLeft') pageFlip.flipPrev();
+				if (e.key === 'ArrowRight') pageFlip.flipNext();
+			},
+			{ signal },
+		);
+	});
 </script>
 
 <style>
