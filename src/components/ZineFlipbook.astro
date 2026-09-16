@@ -118,7 +118,11 @@ const minHeight = Math.round(minWidth / aspectRatio);
 		display: block;
 		width: 100%;
 		height: 100%;
-		object-fit: contain;
+		/* The page box uses a fixed aspect ratio, but individual split
+		   pages differ from it by a hair. "contain" would letterbox that
+		   gap in at every edge, most visibly as a seam at the spine where
+		   two pages meet. "cover" crops the same sliver instead. */
+		object-fit: cover;
 	}
 
 	.controls {
