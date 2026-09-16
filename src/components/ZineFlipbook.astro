@@ -9,6 +9,8 @@ interface Props {
 const { pages, title, aspectRatio = 1506 / 2107.5 } = Astro.props;
 const width = 600;
 const height = Math.round(width / aspectRatio);
+const minWidth = 130;
+const minHeight = Math.round(minWidth / aspectRatio);
 ---
 
 <div
@@ -16,8 +18,12 @@ const height = Math.round(width / aspectRatio);
 	data-pages={JSON.stringify(pages)}
 	data-width={width}
 	data-height={height}
+	data-min-width={minWidth}
+	data-min-height={minHeight}
 >
-	<div id="flipbook" aria-label={`${title} — flip through pages`}></div>
+	<div id="flipbook" aria-label={`${title} — flip through pages`}>
+		<div class="cover-mask" hidden></div>
+	</div>
 
 	<div class="controls">
 		<button id="prev" type="button" aria-label="Previous page">‹</button>
@@ -36,14 +42,16 @@ const height = Math.round(width / aspectRatio);
 		const pages = JSON.parse(wrap.dataset.pages ?? '[]') as string[];
 		const width = Number(wrap.dataset.width);
 		const height = Number(wrap.dataset.height);
+		const minWidth = Number(wrap.dataset.minWidth);
+		const minHeight = Number(wrap.dataset.minHeight);
 
 		const pageFlip = new PageFlip(el, {
 			width,
 			height,
 			size: 'stretch',
-			minWidth: 280,
+			minWidth,
 			maxWidth: 1400,
-			minHeight: 380,
+			minHeight,
 			maxHeight: 1960,
 			maxShadowOpacity: 0.5,
 			showCover: true,
@@ -61,8 +69,31 @@ const height = Math.round(width / aspectRatio);
 				indicator.textContent = `${pageFlip.getCurrentPageIndex() + 1} / ${pageFlip.getPageCount()}`;
 			}
 		};
-		updateIndicator();
-		pageFlip.on('flip', updateIndicator);
+
+		// The cover has no facing page, and the flip library always clears its
+		// canvas to white, so that unused half would otherwise show as a stray
+		// white block against the site's dark background. Mask it to match.
+		const coverMask = document.querySelector<HTMLElement>('.cover-mask');
+		const updateCoverMask = () => {
+			if (!coverMask) return;
+			const isCover = pageFlip.getCurrentPageIndex() === 0;
+			coverMask.hidden = !isCover;
+			if (isCover) {
+				const rect = pageFlip.getBoundsRect();
+				coverMask.style.left = `${rect.left}px`;
+				coverMask.style.top = `${rect.top}px`;
+				coverMask.style.width = `${rect.pageWidth}px`;
+				coverMask.style.height = `${rect.height}px`;
+			}
+		};
+
+		const update = () => {
+			updateIndicator();
+			updateCoverMask();
+		};
+		update();
+		pageFlip.on('flip', update);
+		window.addEventListener('resize', () => requestAnimationFrame(updateCoverMask));
 
 		document.getElementById('prev')?.addEventListener('click', () => pageFlip.flipPrev());
 		document.getElementById('next')?.addEventListener('click', () => pageFlip.flipNext());
@@ -86,6 +117,13 @@ const height = Math.round(width / aspectRatio);
 	#flipbook {
 		width: min(90vw, 1100px);
 		max-height: 82vh;
+	}
+
+	.cover-mask {
+		position: absolute;
+		z-index: 2;
+		background: var(--bg);
+		pointer-events: none;
 	}
 
 	.controls {
