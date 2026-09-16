@@ -48,7 +48,9 @@ const height = Math.round(width / aspectRatio);
 			maxShadowOpacity: 0.5,
 			showCover: true,
 			mobileScrollSupport: false,
-			usePortrait: true,
+			// Every page is half of a printed spread, so a single-page view on
+			// narrow screens would show only half a photo. Always show spreads.
+			usePortrait: false,
 		});
 
 		pageFlip.loadFromImages(pages);
