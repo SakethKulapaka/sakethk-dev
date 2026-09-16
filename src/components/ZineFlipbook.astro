@@ -54,10 +54,19 @@ const minHeight = Math.round(minWidth / aspectRatio);
 	// only evaluates once (browsers dedupe repeat imports of the same URL),
 	// so re-running the setup has to hang off a lifecycle event rather than
 	// the module body — otherwise a zine opened a second time never inits.
+	let activePageFlip: InstanceType<typeof PageFlip> | null = null;
+
 	document.addEventListener('astro:page-load', () => {
 		const wrap = document.querySelector<HTMLElement>('.flipbook-wrap');
 		const el = document.getElementById('flipbook');
 		if (!wrap || !el) return;
+
+		// PageFlip registers window-level listeners (resize, mouse/touch drag)
+		// that outlive the page they were created for, since navigation swaps
+		// the DOM without unloading the module. Leaving the previous instance
+		// running left it fighting the new one for those events.
+		activePageFlip?.destroy();
+		activePageFlip = null;
 		const width = Number(wrap.dataset.width);
 		const height = Number(wrap.dataset.height);
 		const minWidth = Number(wrap.dataset.minWidth);
@@ -84,6 +93,7 @@ const minHeight = Math.round(minWidth / aspectRatio);
 		});
 
 		pageFlip.loadFromHTML(pageElements);
+		activePageFlip = pageFlip;
 
 		const indicator = document.getElementById('page-indicator');
 		const updateIndicator = () => {
