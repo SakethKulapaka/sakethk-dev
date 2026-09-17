@@ -159,6 +159,14 @@ const minHeight = Math.round(minWidth / aspectRatio);
 	}
 
 	.controls {
+		/* The flip library's internal shadow elements sit inside #flipbook
+		   with hardcoded numeric z-index values, but #flipbook itself has no
+		   z-index, so it doesn't contain them in their own stacking context —
+		   they compete directly against this sibling. Depending on viewport
+		   size those elements can end up layered over these buttons, silently
+		   swallowing clicks. Give this an explicit stacking context above it. */
+		position: relative;
+		z-index: 10;
 		display: flex;
 		align-items: center;
 		gap: 1.25rem;
