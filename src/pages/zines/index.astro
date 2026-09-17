@@ -8,8 +8,14 @@ const zines = [
 		description: 'Fairbanks, Alaska — winter 2024',
 		cover: '/zines/blues/01.jpg',
 		tilt: -4,
+		carouselSpreads: [1, 9, 10, 12, 15, 16, 17, 18, 20],
 	},
-];
+].map((zine) => ({
+	...zine,
+	spreads: zine.carouselSpreads.map(
+		(n) => `/zines/${zine.slug}/spreads/${String(n).padStart(2, '0')}.jpg`,
+	),
+}));
 ---
 
 <Layout title="Zines — Saketh Kulapaka" description="Photo zines by Saketh Kulapaka.">
@@ -21,8 +27,14 @@ const zines = [
 			{
 				zines.map((zine) => (
 					<li class="card" style={`--tilt: ${zine.tilt}deg`}>
-						<a href={`/zines/${zine.slug}/`}>
+						<a class="card-link" href={`/zines/${zine.slug}/`}>
+							<div class="carousel" aria-hidden="true">
+								{zine.spreads.map((src, i) => (
+									<img src={src} alt="" loading="lazy" class={i === 0 ? 'active' : ''} />
+								))}
+							</div>
 							<img
+								class="cover"
 								src={zine.cover}
 								alt={`${zine.title} cover`}
 								width={300}
@@ -39,6 +51,50 @@ const zines = [
 		</ul>
 	</main>
 </Layout>
+
+<script>
+	// Cycle each card's background carousel while hovered. View transitions
+	// swap the DOM without a full reload and this module only evaluates
+	// once, so setup has to hang off a lifecycle event rather than the
+	// module body — otherwise revisiting this page via back/forward would
+	// leave the carousels inert.
+	document.addEventListener('astro:page-load', () => {
+		const controller = new AbortController();
+		const { signal } = controller;
+		document.addEventListener('astro:before-swap', () => controller.abort(), { once: true });
+
+		document.querySelectorAll<HTMLAnchorElement>('.card-link').forEach((link) => {
+			const images = link.querySelectorAll<HTMLImageElement>('.carousel img');
+			if (images.length < 2) return;
+
+			let index = 0;
+			let timer: ReturnType<typeof setInterval> | null = null;
+
+			link.addEventListener(
+				'mouseenter',
+				() => {
+					timer = setInterval(() => {
+						images[index].classList.remove('active');
+						index = (index + 1) % images.length;
+						images[index].classList.add('active');
+					}, 1400);
+				},
+				{ signal },
+			);
+
+			link.addEventListener(
+				'mouseleave',
+				() => {
+					if (timer) clearInterval(timer);
+					images[index].classList.remove('active');
+					index = 0;
+					images[0].classList.add('active');
+				},
+				{ signal },
+			);
+		});
+	});
+</script>
 
 <style>
 	.zines-page {
@@ -81,7 +137,11 @@ const zines = [
 		gap: 3.5rem;
 	}
 
-	.card a {
+	.card-link {
+		/* Establishes its own stacking context so the carousel's negative
+		   z-index only reaches behind this card's own cover, not siblings. */
+		position: relative;
+		z-index: 0;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -89,7 +149,43 @@ const zines = [
 		color: inherit;
 	}
 
-	.card img {
+	.carousel {
+		/* Fixed to the viewport rather than sized to the card, so it reads as
+		   a full-screen ambient background rather than a local hover effect. */
+		position: fixed;
+		inset: 0;
+		z-index: -1;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		overflow: hidden;
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity 0.4s ease;
+	}
+
+	.card-link:hover .carousel {
+		opacity: 0.4;
+	}
+
+	.carousel img {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		/* contain, not cover: the point is to see each full spread, so it
+		   should never crop — letterbox instead if the viewport doesn't
+		   match the spread's aspect ratio. */
+		object-fit: contain;
+		opacity: 0;
+		transition: opacity 1s ease;
+	}
+
+	.carousel img.active {
+		opacity: 1;
+	}
+
+	.cover {
 		width: 11rem;
 		height: auto;
 		aspect-ratio: 1506 / 2108;
@@ -104,7 +200,7 @@ const zines = [
 			box-shadow 0.25s ease;
 	}
 
-	.card a:hover img {
+	.card-link:hover .cover {
 		transform: rotate(0deg) translateY(-0.35rem) scale(1.03);
 		box-shadow:
 			0 2px 4px rgba(0, 0, 0, 0.45),
